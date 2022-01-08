@@ -1202,34 +1202,6 @@ func Benchmark_XDR2_Unmarshal(b *testing.B) {
 	}
 }
 
-// gopkg.in/linkedin/goavro.v1
-
-func Benchmark_GoAvro_Marshal(b *testing.B) {
-	benchMarshal(b, NewAvroA())
-}
-
-func Benchmark_GoAvro_Unmarshal(b *testing.B) {
-	benchUnmarshal(b, NewAvroA())
-}
-
-// github.com/linkedin/goavro
-
-func Benchmark_GoAvro2Text_Marshal(b *testing.B) {
-	benchMarshal(b, NewAvro2Txt())
-}
-
-func Benchmark_GoAvro2Text_Unmarshal(b *testing.B) {
-	benchUnmarshal(b, NewAvro2Txt())
-}
-
-func Benchmark_GoAvro2Binary_Marshal(b *testing.B) {
-	benchMarshal(b, NewAvro2Bin())
-}
-
-func Benchmark_GoAvro2Binary_Unmarshal(b *testing.B) {
-	benchUnmarshal(b, NewAvro2Bin())
-}
-
 // github.com/ikkerens/ikeapack
 
 type IkeA struct {
@@ -1447,80 +1419,6 @@ func Benchmark_SSZNoTimeNoStringNoFloatA_Unmarshal(b *testing.B) {
 		if validate != "" {
 			i := data[n]
 			correct := bytes.Equal(o.Name, i.Name) && bytes.Equal(o.Phone, i.Phone) && o.Siblings == i.Siblings && o.Spouse == i.Spouse && o.Money == i.Money && o.BirthDay == i.BirthDay //&& cmpTags(o.Tags, i.Tags) && cmpAliases(o.Aliases, i.Aliases)
-			if !correct {
-				b.Fatalf("unmarshaled object differed:\n%v\n%v", i, o)
-			}
-		}
-	}
-}
-
-// github.com/itsmontoya/mum
-func Benchmark_Mum_Marshal(b *testing.B) {
-	s := newMumSerializer()
-	benchMarshal(b, s)
-}
-
-func Benchmark_Mum_Unmarshal(b *testing.B) {
-	s := newMumSerializer()
-	benchUnmarshal(b, s)
-}
-
-// github.com/200sc/bebop
-
-func generateBebopA() []*BebopBufA {
-	a := make([]*BebopBufA, 0, 1000)
-	for i := 0; i < 1000; i++ {
-		a = append(a, &BebopBufA{
-			Name: randString(16),
-			// bebop does support times, but as 100-nanosecond ticks, losing some precision
-			BirthDay: uint64(time.Now().UnixNano()),
-			Phone:    randString(10),
-			Siblings: rand.Int31n(5),
-			Spouse:   rand.Intn(2) == 1,
-			Money:    rand.Float64(),
-		})
-	}
-	return a
-}
-
-func Benchmark_Bebop_Marshal(b *testing.B) {
-	data := generateBebopA()
-	b.ReportAllocs()
-	b.ResetTimer()
-	var serialSize int
-	for i := 0; i < b.N; i++ {
-		out := data[rand.Intn(len(data))].MarshalBebop()
-		serialSize += len(out)
-	}
-	b.ReportMetric(float64(serialSize)/float64(b.N), "B/serial")
-}
-
-func Benchmark_Bebop_Unmarshal(b *testing.B) {
-	b.StopTimer()
-	data := generateBebopA()
-	ser := make([][]byte, len(data))
-	var serialSize int
-	for i, d := range data {
-		ser[i] = d.MarshalBebop()
-		serialSize += len(ser[i])
-	}
-	b.ReportMetric(float64(serialSize)/float64(len(data)), "B/serial")
-	buf := new(bytes.Buffer)
-	buf.Grow(100)
-	b.ReportAllocs()
-	b.StartTimer()
-
-	for i := 0; i < b.N; i++ {
-		n := rand.Intn(len(ser))
-		o := BebopBufA{}
-		err := o.UnmarshalBebop(ser[n])
-		if err != nil {
-			b.Fatalf("bebop failed to unmarshal: %s (%s)", err, ser[n])
-		}
-		// Validate unmarshalled data.
-		if validate != "" {
-			i := data[n]
-			correct := o.Name == i.Name && o.Phone == i.Phone && o.Siblings == i.Siblings && o.Spouse == i.Spouse && o.Money == i.Money && o.BirthDay == i.BirthDay
 			if !correct {
 				b.Fatalf("unmarshaled object differed:\n%v\n%v", i, o)
 			}

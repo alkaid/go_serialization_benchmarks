@@ -1,8 +1,0 @@
-struct BebopBufA {
-  string name;
-  uint64 birthDay;
-  string phone;
-  int32 siblings;
-  bool spouse;
-  float64 money;
-}
